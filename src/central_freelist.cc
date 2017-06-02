@@ -189,9 +189,9 @@ bool CentralFreeList::MakeCacheSpace() {
 namespace {
 class LockInverter {
  private:
-  SpinLock *held_, *temp_;
+  SpinLockBase *held_, *temp_;
  public:
-  inline explicit LockInverter(SpinLock* held, SpinLock *temp)
+  inline explicit LockInverter(SpinLockBase* held, SpinLockBase *temp)
     : held_(held), temp_(temp) { held_->Unlock(); temp_->Lock(); }
   inline ~LockInverter() { temp_->Unlock(); held_->Lock();  }
 };

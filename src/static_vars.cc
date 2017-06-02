@@ -67,7 +67,7 @@ void CentralCacheUnlockAll()
 }
 #endif
 
-SpinLock Static::pageheap_lock_(SpinLock::LINKER_INITIALIZED);
+SpinLock<SpinLockType::PageHeap> Static::pageheap_lock_(SpinLockBase::LINKER_INITIALIZED);
 SizeMap Static::sizemap_;
 CentralFreeListPadded Static::central_cache_[kNumClasses];
 PageHeapAllocator<Span> Static::span_allocator_;

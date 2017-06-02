@@ -45,7 +45,7 @@
 #ifdef HAVE_INTTYPES_H
 #include <inttypes.h>           // uint16_t might be here; PRId64 too.
 #endif
-#ifdef HAVE_STDINT_H
+#ifndef HAVE_STDINT_H
 #include <stdint.h>             // to get uint16_t (ISO naming madness)
 #endif
 #include <sys/types.h>          // our last best hope for uint16_t

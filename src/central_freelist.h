@@ -161,7 +161,7 @@ class CentralFreeList {
 
   // This lock protects all the data members.  cached_entries and cache_size_
   // may be looked at without holding the lock.
-  SpinLock lock_;
+  SpinLock<SpinLockType::CentralFreeList> lock_;
 
   // We keep linked lists of empty and non-empty spans.
   size_t   size_class_;     // My size class

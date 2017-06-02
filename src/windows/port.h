@@ -96,7 +96,7 @@
 
 /* ----------------------------------- BASIC TYPES */
 
-#ifndef HAVE_STDINT_H
+#ifdef HAVE_STDINT_H_14
 #ifndef HAVE___INT64    /* we need to have all the __intX names */
 # error  Do not know how to set up type aliases.  Edit port.h for your system.
 #endif
@@ -324,7 +324,7 @@ inline int perftools_vsnprintf(char *str, size_t size, const char *format,
 }
 #endif
 
-#ifndef HAVE_SNPRINTF
+#ifdef HAVE_SNPRINTF_14
 inline int snprintf(char *str, size_t size, const char *format, ...) {
   va_list ap;
   int r;
@@ -436,12 +436,13 @@ inline unsigned int sleep(unsigned int seconds) {
 
 // mingw64 seems to define timespec (though mingw.org mingw doesn't),
 // protected by the _TIMESPEC_DEFINED macro.
-#ifndef _TIMESPEC_DEFINED
+#ifdef _TIMESPEC_DEFINED_14
 struct timespec {
   int tv_sec;
   int tv_nsec;
 };
 #endif
+#include <time.h>
 
 #ifndef HAVE_DECL_NANOSLEEP
 #define HAVE_DECL_NANOSLEEP 0

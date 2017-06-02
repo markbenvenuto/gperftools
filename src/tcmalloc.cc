@@ -1428,7 +1428,7 @@ inline struct mallinfo do_mallinfo() {
 }
 #endif  // HAVE_STRUCT_MALLINFO
 
-static SpinLock set_new_handler_lock(SpinLock::LINKER_INITIALIZED);
+static SpinLock<SpinLockType::NewHandler> set_new_handler_lock(SpinLockBase::LINKER_INITIALIZED);
 
 inline void* cpp_alloc(size_t size, bool nothrow) {
 #ifdef PREANSINEW
