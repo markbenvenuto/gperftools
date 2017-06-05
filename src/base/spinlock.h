@@ -66,6 +66,7 @@ const int SpinLockTypeMaxValue = 99;
 struct SpinLockStat {
     uint64_t acquires;
     uint64_t waits;
+    uint64_t wait_time;
 };
 
 class SpinLockStats {
@@ -75,8 +76,9 @@ public:
     void Acquire(int type) {
         stats[type].acquires++;
     }
-    void Wait(int type) {
+    void Wait(int type, size_t wait_time) {
         stats[type].waits++;
+        stats[type].wait_time+=wait_time;
     }
 private:
     SpinLockStat stats[SpinLockTypeMaxValue];

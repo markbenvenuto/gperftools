@@ -95,9 +95,6 @@ Atomic32 SpinLockBase::SpinLoop(int64 initial_wait_timestamp,
 }
 
 void SpinLockBase::SlowLock(size_t value) {
-   SpinLockStats::Static.Wait(value);
-
-
   // The lock was not obtained initially, so this thread needs to wait for
   // it.  Record the current timestamp in the local variable wait_start_time
   // so the total wait time can be stored in the lockword once this thread
@@ -140,6 +137,8 @@ void SpinLockBase::SlowLock(size_t value) {
     // some chance of obtaining the lock.
     lock_value = SpinLoop(wait_start_time, &wait_cycles);
   }
+
+   SpinLockStats::Static.Wait(value, lock_wait_call_count);
 }
 
 // The wait time for contentionz lock profiling must fit into 32 bits.
