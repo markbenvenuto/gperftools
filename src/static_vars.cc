@@ -119,6 +119,6 @@ void SetupAggressiveDecommit()
 {
   Static::pageheap()->SetAggressiveDecommit(EnvToBool("TCMALLOC_AGGRESSIVE_DECOMMIT", false));
 }
-REGISTER_MODULE_INITIALIZER(tcmalloc_setup_aggressive_decommit, SetupAggressiveDecommit());
+//REGISTER_MODULE_INITIALIZER(tcmalloc_setup_aggressive_decommit, SetupAggressiveDecommit());
 
 }  // namespace tcmalloc

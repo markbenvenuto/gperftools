@@ -46,19 +46,41 @@
 #include "base/thread_annotations.h"
 
 enum class SpinLockType {
-    CentralFreeList = 1,
-    PageHeap = 2,
-    SystemAlloc = 3,
-    LowLevelAllocArena = 4,
-    HookList = 5,
-    Patch = 6,
-    NewHandler = 7,
-    MemoryMap = 8,
-    MemoryMapOwner =9,
-    Metadata = 10,
-    Crash = 11,
+    CentralFreeList = 0,
+    MaxCentralFreeList = 88,
+    PageHeap,
+    SystemAlloc,
+    LowLevelAllocArena,
+    HookList,
+    Patch,
+    NewHandler,
+    MemoryMap,
+    MemoryMapOwner,
+    Metadata,
+    Crash,
+    SpinLockTypeMax,
 };
 
+const int SpinLockTypeMaxValue = 99;
+
+struct SpinLockStat {
+    uint64_t acquires;
+    uint64_t waits;
+};
+
+class SpinLockStats {
+public:
+    static SpinLockStats Static;
+
+    void Acquire(int type) {
+        stats[type].acquires++;
+    }
+    void Wait(int type) {
+        stats[type].waits++;
+    }
+private:
+    SpinLockStat stats[SpinLockTypeMaxValue];
+};
 
 template< SpinLockType SpinLockTypeValue>
 class LOCKABLE SpinLock : public SpinLockBase {
@@ -82,7 +104,7 @@ class LOCKABLE SpinLock : public SpinLockBase {
   // TODO(csilvers): uncomment the annotation when we figure out how to
   //                 support this macro with 0 args (see thread_annotations.h)
   inline void Lock() /*EXCLUSIVE_LOCK_FUNCTION()*/ {
-    SpinLockBase::Lock();
+    SpinLockBase::Lock(static_cast<size_t>(SpinLockTypeValue));
   }
 
   // Try to acquire this SpinLock without blocking and return true if the
@@ -133,10 +155,12 @@ class LOCKABLE SpinLockBase {
   // Acquire this SpinLock.
   // TODO(csilvers): uncomment the annotation when we figure out how to
   //                 support this macro with 0 args (see thread_annotations.h)
-  inline void Lock() /*EXCLUSIVE_LOCK_FUNCTION()*/ {
+  inline void Lock(size_t value) /*EXCLUSIVE_LOCK_FUNCTION()*/ {
     if (base::subtle::Acquire_CompareAndSwap(&lockword_, kSpinLockFree,
                                              kSpinLockHeld) != kSpinLockFree) {
-      SlowLock();
+      SlowLock(value);
+    } else {
+        SpinLockStats::Static.Acquire(value);
     }
     ANNOTATE_RWLOCK_ACQUIRED(this, 1);
   }
@@ -185,7 +209,7 @@ class LOCKABLE SpinLockBase {
 
   volatile Atomic32 lockword_;
 
-  void SlowLock();
+  void SlowLock(size_t value);
   void SlowUnlock(uint64 wait_cycles);
   Atomic32 SpinLoop(int64 initial_wait_timestamp, Atomic32* wait_cycles);
   inline int32 CalculateWaitCycles(int64 wait_start_time);
@@ -195,17 +219,27 @@ class LOCKABLE SpinLockBase {
 
 // Corresponding locker object that arranges to acquire a spinlock for
 // the duration of a C++ scope.
+class SCOPED_LOCKABLE SpinLockHolderId {
+ private:
+  SpinLockBase* lock_;
+ public:
+  inline explicit SpinLockHolderId(SpinLockBase* l, size_t id) EXCLUSIVE_LOCK_FUNCTION(l)
+      : lock_(l) {
+    l->Lock(id);
+  }
+  // TODO(csilvers): uncomment the annotation when we figure out how to
+  //                 support this macro with 0 args (see thread_annotations.h)
+  inline ~SpinLockHolderId() /*UNLOCK_FUNCTION()*/ { lock_->Unlock(); }
+};
+
+// Corresponding locker object that arranges to acquire a spinlock for
+// the duration of a C++ scope.
 class SCOPED_LOCKABLE SpinLockHolder {
  private:
   SpinLockBase* lock_;
  public:
-     /*template<SpinLockType T1>
-     inline explicit SpinLockHolder(SpinLock<T1>* l) EXCLUSIVE_LOCK_FUNCTION(l)
-      : lock_(static_cast<SpinLockBase*>(l)) {
-    l->Lock();
-  }*/
-
-  inline explicit SpinLockHolder(SpinLockBase* l) EXCLUSIVE_LOCK_FUNCTION(l)
+template< SpinLockType SpinLockTypeValue>
+  inline explicit SpinLockHolder(SpinLock<SpinLockTypeValue>* l) EXCLUSIVE_LOCK_FUNCTION(l)
       : lock_(l) {
     l->Lock();
   }
@@ -213,8 +247,8 @@ class SCOPED_LOCKABLE SpinLockHolder {
   //                 support this macro with 0 args (see thread_annotations.h)
   inline ~SpinLockHolder() /*UNLOCK_FUNCTION()*/ { lock_->Unlock(); }
 };
+
 // Catch bug where variable name is omitted, e.g. SpinLockHolder (&lock);
 #define SpinLockHolder(x) COMPILE_ASSERT(0, spin_lock_decl_missing_var_name)
-
 
 #endif  // BASE_SPINLOCK_H_

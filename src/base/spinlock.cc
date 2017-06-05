@@ -55,6 +55,8 @@ static int adaptive_spin_count = 0;
 const base::LinkerInitialized SpinLockBase::LINKER_INITIALIZED =
     base::LINKER_INITIALIZED;
 
+SpinLockStats SpinLockStats::Static;
+
 namespace {
 struct SpinLock_InitHelper {
   SpinLock_InitHelper() {
@@ -92,7 +94,10 @@ Atomic32 SpinLockBase::SpinLoop(int64 initial_wait_timestamp,
   return lock_value;
 }
 
-void SpinLockBase::SlowLock() {
+void SpinLockBase::SlowLock(size_t value) {
+   SpinLockStats::Static.Wait(value);
+
+
   // The lock was not obtained initially, so this thread needs to wait for
   // it.  Record the current timestamp in the local variable wait_start_time
   // so the total wait time can be stored in the lockword once this thread

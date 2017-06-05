@@ -67,7 +67,7 @@ class CentralFreeList {
 
   // Returns the number of free objects in cache.
   int length() {
-    SpinLockHolder h(&lock_);
+    SpinLockHolderId h(&lock_, size_class_);
     return counter_;
   }
 
