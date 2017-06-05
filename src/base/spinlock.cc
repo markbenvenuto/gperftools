@@ -138,7 +138,7 @@ void SpinLockBase::SlowLock(size_t value) {
     lock_value = SpinLoop(wait_start_time, &wait_cycles);
   }
 
-   SpinLockStats::Static.Wait(value, lock_wait_call_count);
+   SpinLockStats::Static.Wait(value, lock_wait_call_count, wait_cycles);
 }
 
 // The wait time for contentionz lock profiling must fit into 32 bits.

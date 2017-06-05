@@ -45,6 +45,8 @@
 #include "base/dynamic_annotations.h"
 #include "base/thread_annotations.h"
 
+#include <atomic>
+
 enum class SpinLockType {
     CentralFreeList = 0,
     MaxCentralFreeList = 88,
@@ -63,10 +65,11 @@ enum class SpinLockType {
 
 const int SpinLockTypeMaxValue = 99;
 
-struct SpinLockStat {
-    uint64_t acquires;
-    uint64_t waits;
-    uint64_t wait_time;
+__declspec( align( 64 ) ) struct SpinLockStat {
+    std::atomic<uint64_t> acquires;
+    std::atomic<uint64_t> waits;
+    std::atomic<uint64_t> wait_count;
+    std::atomic<uint64_t> wait_time;
 };
 
 class SpinLockStats {
@@ -76,10 +79,17 @@ public:
     void Acquire(int type) {
         stats[type].acquires++;
     }
-    void Wait(int type, size_t wait_time) {
+    void Wait(int type, size_t wait_count, size_t wait_time) {
         stats[type].waits++;
+        stats[type].wait_count+=wait_count;
+
         stats[type].wait_time+=wait_time;
     }
+
+    size_t count() const { return SpinLockTypeMaxValue; }
+
+    const SpinLockStat& getStat(int type) const { return stats[type]; }
+
 private:
     SpinLockStat stats[SpinLockTypeMaxValue];
 };
@@ -107,6 +117,10 @@ class LOCKABLE SpinLock : public SpinLockBase {
   //                 support this macro with 0 args (see thread_annotations.h)
   inline void Lock() /*EXCLUSIVE_LOCK_FUNCTION()*/ {
     SpinLockBase::Lock(static_cast<size_t>(SpinLockTypeValue));
+  }
+
+  inline void Lock(size_t value) /*EXCLUSIVE_LOCK_FUNCTION()*/ {
+    SpinLockBase::Lock(value);
   }
 
   // Try to acquire this SpinLock without blocking and return true if the

@@ -44,6 +44,8 @@
 #include "common.h"
 #include "span.h"
 
+#include <atomic>
+
 namespace tcmalloc {
 
 // Data kept per size-class in central cache.
@@ -89,12 +91,37 @@ class CentralFreeList {
   // Lock/Unlock the internal SpinLock. Used on the pthread_atfork call
   // to set the lock in a consistent state before the fork.
   void Lock() {
-    lock_.Lock();
+    lock_.Lock(size_class_);
   }
 
   void Unlock() {
     lock_.Unlock();
   }
+
+  void IncrementCleanupCounter() {
+      cleanup_counter_.fetch_add(1);
+      //cleanup_counter_++;
+  }
+
+  void IncrementListToLongCounter() {
+      list_to_long_counter_.fetch_add(1);
+  }
+
+    void IncrementScavengeCounter() {
+        scavange_counter_.fetch_add(1);
+    }
+
+    uint64_t scavange_counter() {
+        return scavange_counter_;
+    }
+
+        uint64_t list_to_long_counter() {
+        return list_to_long_counter_;
+    }
+
+            uint64_t cleanup_counter() {
+        return cleanup_counter_;
+    }
 
  private:
   // TransferCache is used to cache transfers of
@@ -192,6 +219,10 @@ class CentralFreeList {
   int32_t cache_size_;
   // Maximum size of the cache for a given size class.
   int32_t max_cache_size_;
+
+  std::atomic<uint64_t> scavange_counter_;
+  std::atomic<uint64_t> list_to_long_counter_;
+  std::atomic<uint64_t> cleanup_counter_;
 };
 
 // Pads each CentralCache object to multiple of 64 bytes.  Since some
