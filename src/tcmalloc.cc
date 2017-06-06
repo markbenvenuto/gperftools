@@ -802,6 +802,13 @@ virtual void SpinLocks(void* arg, SpinLockStatsFunction func) {
     return sys_alloc;
   }
 
+  virtual size_t GetThreadCacheSize() {
+    ThreadCache* tc = ThreadCache::GetCacheIfPresent();
+    if (!tc)
+      return 0;
+    return tc->Size();
+  }
+
   virtual void SetSystemAllocator(SysAllocator* alloc) {
     SpinLockHolder h(Static::pageheap_lock());
     sys_alloc = alloc;

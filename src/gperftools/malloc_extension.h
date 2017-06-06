@@ -242,6 +242,10 @@ class PERFTOOLS_DLL_DECL MallocExtension {
   // Most malloc implementations ignore this routine.
   virtual void MarkThreadBusy();
 
+  // Gets the size of this thread's cache in bytes.
+  // MONGODB ADDITION
+  virtual size_t GetThreadCacheSize();
+
   // Gets the system allocator used by the malloc extension instance. Returns
   // NULL for malloc implementations that do not support pluggable system
   // allocators.
@@ -446,10 +450,10 @@ size_t scavange_counter;
 struct SpinLockStatInfo {
     size_t id;
     const char* name;
-    uint64_t acquires;
-    uint64_t waits;
-    uint64_t wait_count;
-    uint64_t wait_time;
+    size_t acquires;
+    size_t waits;
+    size_t wait_count;
+    size_t wait_time;
 };
 
 } // namespace base
