@@ -60,17 +60,34 @@ enum class SpinLockType {
     MemoryMapOwner,
     Metadata,
     Crash,
+    DebugAllocMap,
+    DebugFreeQueue,
+    DebugMallocTrace,
+    HeapChecker,
+    HeapCheckerAlignment,
+    HeapCheckerObject,
+    ProfileHandlerControl,
+    ProfileHandlerSignal,
+    HeapProfiler,
+    CpuProfiler,
     SpinLockTypeMax,
 };
 
-const int SpinLockTypeMaxValue = 99;
+const int SpinLockTypeMaxValue = 109;
 
-__declspec( align( 64 ) ) struct SpinLockStat {
+#if _MSC_VAR
+__declspec( align( 64 ) )
+#endif
+struct SpinLockStat {
     std::atomic<uint64_t> acquires;
     std::atomic<uint64_t> waits;
     std::atomic<uint64_t> wait_count;
     std::atomic<uint64_t> wait_time;
-};
+}
+#ifdef __GNUC__
+__attribute__ ((aligned (64)))
+#endif
+;
 
 class SpinLockStats {
 public:
