@@ -28,7 +28,7 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "base/basictypes.h"
+#define ATTRIBUTE_WEAK 
 
 namespace tcmalloc {
   ATTRIBUTE_WEAK bool EnterStacktraceScope(void) {

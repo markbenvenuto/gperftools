@@ -1188,13 +1188,7 @@ static int RunAllTests(int argc, char** argv) {
     }
 
     // Windows has _aligned_malloc.  Let's test that that's captured too.
-#if (defined(_MSC_VER) || defined(__MINGW32__)) && !defined(PERFTOOLS_NO_ALIGNED_MALLOC)
-    p1 = _aligned_malloc(sizeof(p1) * 2, 64);
-    CHECK(p1 != NULL);
-    VerifyNewHookWasCalled();
-    _aligned_free(p1);
-    VerifyDeleteHookWasCalled();
-#endif
+
 
     p1 = valloc(60);
     CHECK(p1 != NULL);

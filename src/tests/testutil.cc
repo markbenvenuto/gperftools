@@ -125,9 +125,10 @@ extern "C" {
       hThread[i] = CreateThread(NULL, 0, RunFunctionInThread, &fn, 0, &dummy);
       if (hThread[i] == NULL)  ExitProcess(i);
     }
-    WaitForMultipleObjects(count, hThread, TRUE, INFINITE);
+    DWORD r1 = WaitForMultipleObjects(count, hThread, TRUE, INFINITE);
+    DWORD r2;
     for (int i = 0; i < count; i++) {
-      CloseHandle(hThread[i]);
+      r2 = CloseHandle(hThread[i]);
     }
     delete[] hThread;
   }
